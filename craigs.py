@@ -24,6 +24,12 @@ roadReg = re.compile(roadexp)
 nearatExp = r'(near|at|@) (.*?)(MRT|for|For)'
 nearatReg = re.compile(nearatExp)
 
+mrtExp = r'\((.*?)(MRT|mrt)'
+mrtReg = re.compile(mrtExp)
+
+parentesisExp = r'\((.*?)\)'
+parentesisReg = re.compile(parentesisExp)
+
 def getLocation(entry):
 	locationRes = re.search(locationReg,entry['description'])
 	if (locationRes != None):
@@ -36,7 +42,17 @@ def getLocation(entry):
 	locationRes = re.search(nearatReg, entry['title'])
 	if (locationRes != None):
 		return locationRes.group(2)
+
+	locationRes = re.search(mrtReg, entry['title'])
+	if (locationRes != None):
+		return "%s Mrt" % locationRes.group(1)
 	
+	parentesisReg
+
+	locationRes = re.search(parentesisReg, entry['title'])
+	if (locationRes != None):
+		return locationRes.group(1)
+
 	return None
 	
 def getElements(query="condo", start=0, minAsk=600, maxAsk = 1300):

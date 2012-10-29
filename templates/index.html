@@ -33,6 +33,23 @@ $def with (query, start, next, minAsk, maxAsk)
 	.yellowPrice {
 		background: yellow;
 	}
+
+	.selectable-text{
+    cursor:text;
+	}
+
+	a.see_in_map {
+		display: inline-block !important;
+		width: 16px;
+		height: 16px;
+		background: url('http://dl.dropbox.com/u/436508/marker_rounded_new.png');
+		text-decoration: none;
+	}
+
+	a.do_not_know_loc {
+		background: url('http://dl.dropbox.com/u/436508/marker_rounded_grey_1.png');
+	}
+
 </style>
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js" ></script>
@@ -122,9 +139,9 @@ $def with (query, start, next, minAsk, maxAsk)
 	
 			markers.push(tmark);
 			map.addLayer(tmark);
-			tmark.bindPopup('<a href="'+entry['url']+'" target="_blank">'+entry['title']+'</a>');
+			tmark.bindPopup('<a href="'+entry['url']+'"  target="_blank">'+entry['title']+'</a>');
 
-			var domElm = $$('<a href="'+entry['url']+'" target="_blank">'+entry['title']+'</a> <span>['+entry['location']+']</span>')
+			var domElm = $$('<a href="'+entry['url']+'" class="see_in_map" target="_blank">&nbsp;</a> '+entry['title']+' <span>['+entry['location']+'] </span> ')
 			container.append(domElm);
 			
 			var redef = $$(' <a href="#" class="redef" >reset</a>');
@@ -135,8 +152,8 @@ $def with (query, start, next, minAsk, maxAsk)
 			redef.bind('click', function(ev){ ev.preventDefault(); redifineMarker(ev, entry); return false; });
 			
 		} else {
-			container.append('* ');
-			var domElm = $$('<a href="'+entry['url']+'" target="_blank">'+entry['title']+'</a> <span>['+entry['location']+']</span>')
+			//container.append('* ');
+			var domElm = $$('<a href="'+entry['url']+'" class="see_in_map do_not_know_loc" target="_blank">&nbsp;</a> '+entry['title']+' <span>['+entry['location']+'] </span> ')
 			container.append(domElm);
 			var redef = $$(' <a href="#" class="redef" >reset</a>');
 			container.append(redef);
