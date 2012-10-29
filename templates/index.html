@@ -1,0 +1,239 @@
+$def with (query, start, next, minAsk, maxAsk)
+
+<html>
+<head>
+
+<link rel="stylesheet" type="text/css" href="http://leaflet.cloudmade.com/dist/leaflet.css">
+<style type="text/css">
+	#pois {
+		float: right;
+		/*border: 1px solid red;*/
+		width: 50%;
+		overflow: hidden;
+		font-size: 12px;
+	}
+
+	#map {
+		float:left;
+	}
+
+	#pois .entry {
+		display: block;
+		clear: both;
+	}
+
+	.greenPrice {
+		background: green;
+	}
+
+	.redPrice {
+		background: red;
+	}
+
+	.yellowPrice {
+		background: yellow;
+	}
+</style>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js" ></script>
+<script type="text/javascript" src="http://leaflet.cloudmade.com/dist/leaflet.js"></script>
+<script type="text/javascript">
+	var geocoder = new google.maps.Geocoder();
+	var total = 0;
+	var valid = 0;
+	var urls = {};
+	var more = 0$start;
+	var markers = [];
+	var map;
+	var greenM = L.Icon.extend({
+    iconUrl: 'http://dl.dropbox.com/u/436508/051.png'
+	});
+
+	var redM = L.Icon.extend({
+    iconUrl: 'http://dl.dropbox.com/u/436508/010.png'
+	});
+
+	var yellowM = L.Icon.extend({
+    iconUrl: 'http://dl.dropbox.com/u/436508/033.png'
+	});
+
+	function openmarker(marker){
+		marker.openPopup();
+	}
+	
+	function sleep(milliSeconds){
+		var startTime = new Date().getTime(); // get the current time
+		while (new Date().getTime() < startTime + milliSeconds); // hog cpu
+	}
+	
+	function updateCounter(){
+		$$('#counter').html(valid+'/'+total);
+	}
+	function redifineMarker(ev, element){
+		console.log(element);
+		var address = prompt("sometext","Singapore");
+		element['location'] = address;
+		
+		urlGoogle = "https://maps.googleapis.com/maps/api/geocode/json?address="+element['location']+'&sensor=false'
+			
+		geocoder.geocode( { 'address': element['location']}, function(results, status) {
+				if (status == google.maps.GeocoderStatus.OK) {
+					window.results = results;
+					//console.log(results[0].geometry.location.lat());
+					element['geo'] = {lat: results[0].geometry.location.lat(), lon: results[0].geometry.location.lng()} ;
+					handleNewLocation(element, true);
+					$$(ev.target).parent().remove()
+				} else {
+					console.log("Geocode was not successful for the following reason: " + status);
+				}
+
+		});
+		//console.log($$(ev.target).parent())
+	}
+
+	function handleNewLocation(entry, force){
+		console.log("adding new location")
+		if (!force && urls[entry['url']] != undefined)
+			return;
+
+		urls[entry['url']] = true;
+		//console.log(arguments);
+		var price = parseInt(entry['price']);
+
+		var container = $$('<div class="entry" />')
+
+		var icon;
+		if (price < 800){
+			icon = new greenM();
+			container.addClass('greenPrice');
+		} else if (price > 1150){
+			icon = new redM();
+			container.addClass('redPrice');
+		} else {
+			icon = new yellowM();
+			container.addClass('yellowPrice');
+		}
+
+		if (entry['geo'] != undefined){
+			valid += 1;
+	
+			var markerLocation = new L.LatLng( entry['geo']['lat'], entry['geo']['lon']);
+			var tmark = new L.Marker(markerLocation, {icon: icon});
+	
+			markers.push(tmark);
+			map.addLayer(tmark);
+			tmark.bindPopup('<a href="'+entry['url']+'" target="_blank">'+entry['title']+'</a>');
+
+			var domElm = $$('<a href="'+entry['url']+'" target="_blank">'+entry['title']+'</a> <span>['+entry['location']+']</span>')
+			container.append(domElm);
+			
+			var redef = $$(' <a href="#" class="redef" >reset</a>');
+			container.append(redef);
+			
+			$$('#pois').append(container)
+			domElm.bind('click', function(ev){ ev.preventDefault(); openmarker(tmark); return false;});
+			redef.bind('click', function(ev){ ev.preventDefault(); redifineMarker(ev, entry); return false; });
+			
+		} else {
+			container.append('* ');
+			var domElm = $$('<a href="'+entry['url']+'" target="_blank">'+entry['title']+'</a> <span>['+entry['location']+']</span>')
+			container.append(domElm);
+			var redef = $$(' <a href="#" class="redef" >reset</a>');
+			container.append(redef);
+			$$('#pois').append(container)
+			redef.bind('click', function(ev){ ev.preventDefault(); redifineMarker(ev, entry); return false; });
+			
+		}
+		
+		updateCounter()
+	}
+	
+	function getGoogleCoordinates(element, force){
+		urlGoogle = "https://maps.googleapis.com/maps/api/geocode/json?address="+element['location']+'&sensor=false'
+			
+		geocoder.geocode( { 'address': element['location']}, function(results, status) {
+				if (status == google.maps.GeocoderStatus.OK) {
+					//console.log(results[0].geometry.location.lat());
+					element['geo'] = {lat: results[0].geometry.location.lat(), lon: results[0].geometry.location.lng()} ;
+				} else {
+					console.log("Geocode was not successful for the following reason: " + status);
+				}
+				handleNewLocation(element, force);
+		});
+	}
+
+	function getCoordinates(element){
+		if (element['location'] == undefined){
+			handleNewLocation(element);
+		} else {
+			urlNominatim = 'http://nominatim.openstreetmap.org/search/'+element['location']+'?format=json'
+			
+			$$.getJSON(urlNominatim, 
+				function(ndata){
+					//console.log(ndata);
+					if (ndata[0] != undefined){
+						element['geo'] = {lat: ndata[0]['lat'], lon: ndata[0]['lon']} ;
+						handleNewLocation(element, false);
+					} else {
+						sleep(1000);
+						getGoogleCoordinates(element, false);
+					}
+					
+				}
+			);
+			
+		}
+	}
+
+	function getElements(start, minAsk, maxAsk){
+		console.log("getting more");
+		var query = $$('#query').val();
+		$$.getJSON('/get/?start='+start+'&query='+query+'&minAsk='+minAsk+'&maxAsk='+maxAsk, function(data) {
+			var mdata = data;
+			total += data.length;
+			for(var i=0;i<data.length;i++){
+				getCoordinates(data[i]);
+			}
+		});
+	}
+
+	function getMore(){
+		more += 24;
+		getElements(more,$minAsk, $maxAsk);
+	}
+
+	function init(){
+		map = new L.Map('map');
+
+		var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png',
+			cloudmadeAttribution = 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+			cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
+
+		map.setView(new L.LatLng(1.55, 103.45), 9).addLayer(cloudmade);
+
+		$$('#next').bind('click', function(e){  e.preventDefault(); getMore() });
+
+		getElements($start, $minAsk, $maxAsk);
+
+		
+		//http://nominatim.openstreetmap.org/search/Coimbra,Portugal?format=json'
+	}
+</script>
+</head>
+<body>
+	<div id="counter">0/0</div>
+	<a id="next" href="/$next#next">10 more</a>
+	<label for="query">Query</label>
+	<input name="query" type="text" id="query" value="$query" />
+	<div id="pois"></div>
+	<div id="map" style="width: 600px; height: 400px"></div>
+	<div style="clear:both"></div>
+	
+	
+<script type="text/javascript">
+	$$(document).ready(function(){
+		init();
+	})
+</script>
+</body>
+</html
