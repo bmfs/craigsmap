@@ -1,2 +1,2 @@
 web.py
-feedparser.py
+feedparser
