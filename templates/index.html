@@ -46,15 +46,15 @@ $def with (query, start, next, minAsk, maxAsk)
 	var markers = [];
 	var map;
 	var greenM = L.Icon.extend({
-    	options: { iconUrl: 'http://dl.dropbox.com/u/436508/051.png' }
+    	options: { iconUrl: 'http://dl.dropbox.com/u/436508/051.png', iconSize: [20, 34], iconAnchor:   [10, 34] }
 	});
 
 	var redM = L.Icon.extend({
-    	options: { iconUrl: 'http://dl.dropbox.com/u/436508/010.png' }
+    	options: { iconUrl: 'http://dl.dropbox.com/u/436508/010.png', iconSize: [20, 34], iconAnchor:   [10, 34] }
 	});
 
 	var yellowM = L.Icon.extend({
-    	options: { iconUrl: 'http://dl.dropbox.com/u/436508/033.png' }
+    	options: { iconUrl: 'http://dl.dropbox.com/u/436508/033.png', iconSize: [20, 34], iconAnchor:   [10, 34] }
 	});
 
 	function openmarker(marker){
