@@ -223,8 +223,10 @@ $def with (query, start, next, minAsk, maxAsk)
 <body>
 	<div id="counter">0/0</div>
 	<a id="next" href="/$next#next">10 more</a>
-	<label for="query">Query</label>
-	<input name="query" type="text" id="query" value="$query" />
+	<form action='/' method="GET" />
+		<label for="query">Query</label>
+		<input name="query" type="text" id="query" value="$query" />
+	</form>
 	<div id="pois"></div>
 	<div id="map" style="width: 600px; height: 400px"></div>
 	<div style="clear:both"></div>
